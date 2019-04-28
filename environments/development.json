@@ -27,27 +27,6 @@
       "install": "lts",
       "binary": true
     },
-    "nginx": {
-      "worker_processes": "auto",
-      "worker_rlimit_nofile": "100000"
-    },
-    "ngx": {
-      "install": "mainline",
-      "with_openssl": true,
-      "with_http2": true,
-      "with_ipv6": false,
-      "with_headers_more": true,
-      "with_status": true,
-      "with_realip": true,
-      "with_geoip2": true,
-      "with_secure_link": false,
-      "with_njs": false,
-      "with_gzip_static": true,
-      "with_brotli": true,
-      "with_debug": false,
-      "with_devel_kit": false,
-      "with_lua": false
-    },
     "ntp": {
       "servers": [
         "0.pool.ntp.org",
@@ -75,10 +54,6 @@
           "sender_address": "info@test.qualifier.volgactf.org"
         },
         "customizers": {
-          "2019-qualifier-theme": {
-            "repo_id": "VolgaCTF/2019-qualifier-theme",
-            "repo_revision": "master"
-          }
         },
         "customizer_name": "default",
         "cleanup_upload_dir": {
