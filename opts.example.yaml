@@ -1,0 +1,18 @@
+vms:
+  master:
+    box: aspyatkin/ubuntu-18.04-server
+    box_version: ~> 1.2.0
+    ssh_insert_key: no
+    name: master.qualifier.volgactf.test
+    memory: 2048
+    cpus: 2
+    hostname: master.qualifier.volgactf.test
+    network:
+      private:
+        - ip: 192.168.163.100
+          netmask: 255.255.255.0
+    synced_folders:
+      - host: .
+        guest: /vagrant
+        opts:
+          disabled: yes
