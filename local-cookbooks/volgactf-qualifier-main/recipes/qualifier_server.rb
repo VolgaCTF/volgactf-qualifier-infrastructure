@@ -1,11 +1,13 @@
 instance = ::ChefCookbook::Instance::Helper.new(node)
 secret = ::ChefCookbook::Secret::Helper.new(node)
 
-apt_update 'update'
+apt_update 'default' do
+  action :update
+  notifies :install, 'build_essential[default]', :immediately
+end
 
-build_essential 'install' do
-  compile_time true
-  action :install
+build_essential 'default' do
+  action :nothing
 end
 
 locale 'en' do
@@ -134,7 +136,7 @@ nginx_install 'default' do
 end
 
 nginx_conf 'gzip' do
-  cookbook 'main'
+  cookbook 'volgactf-qualifier-main'
   template 'nginx/gzip.nginx.conf.erb'
   action :create
 end
@@ -152,7 +154,7 @@ nginx_conf 'ssl' do
 end
 
 nginx_conf 'resolver' do
-  cookbook 'main'
+  cookbook 'volgactf-qualifier-main'
   template 'nginx/resolver.nginx.conf.erb'
   variables(
     resolvers: %w[1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4],
@@ -163,7 +165,7 @@ nginx_conf 'resolver' do
 end
 
 nginx_conf 'realip' do
-  cookbook 'main'
+  cookbook 'volgactf-qualifier-main'
   template 'nginx/realip.nginx.conf.erb'
   variables(
     header: 'X-Forwarded-For',
@@ -219,7 +221,7 @@ node.default['redisio']['servers'] = [
 include_recipe 'redisio::default'
 include_recipe 'redisio::enable'
 
-include_recipe 'latest-nodejs::default'
+include_recipe 'nodejs::nodejs_from_binary'
 
 postgres_version = '9.6'
 postgres_superuser_pwd = secret.get('postgres:password:postgres')
@@ -283,7 +285,14 @@ if node.chef_environment == 'development'
   end
 end
 
-python_runtime '2'
+%w[
+  python2.7
+  python-pip
+].each do |pkg_name|
+  package pkg_name do
+    action :install
+  end
+end
 
 opt_secure = node_part.fetch('secure', false)
 opt_proxied = node_part.fetch('proxied', false)
@@ -293,6 +302,7 @@ opt_optimize_delivery = node_part.fetch('optimize_delivery', false)
 post_twitter = node_part.fetch('notification_post_twitter', false)
 post_telegram = node_part.fetch('notification_post_telegram', false)
 enable_backup = node_part.fetch('backup', {}).fetch('enabled', false)
+smtp_username = node_part.fetch('smtp', {}).fetch('username', nil)
 
 volgactf_qualifier_app node_part['fqdn'] do
   development node.chef_environment == 'development'
@@ -306,7 +316,7 @@ volgactf_qualifier_app node_part['fqdn'] do
   num_processes_queue node_part.fetch('num_processes_queue', 2)
 
   email_transport node_part['email']['transport']
-  email_enforce_address_validation node_part['email']['enforce_address_validation']
+  email_address_validator node_part['email']['address_validator']
   email_sender_name node_part['email']['sender_name']
   email_sender_address node_part['email']['sender_address']
 
@@ -351,8 +361,14 @@ volgactf_qualifier_app node_part['fqdn'] do
 
   google_tag_id secret.get('google:tag_id', default: nil, required: false)
 
-  mailgun_api_key secret.get('mailgun:api_key')
-  mailgun_domain secret.get('mailgun:domain')
+  mailgun_api_key secret.get('mailgun:api_key', required: node_part['email']['transport'] == 'mailgun' || node_part['email']['address_validator'] == 'mailgun')
+  mailgun_domain node_part.fetch('mailgun', {}).fetch('domain', nil)
+
+  smtp_host node_part.fetch('smtp', {}).fetch('host', nil)
+  smtp_port node_part.fetch('smtp', {}).fetch('port', nil)
+  smtp_secure node_part.fetch('smtp', {}).fetch('secure', false)
+  smtp_username smtp_username
+  smtp_password secret.get("smtp:password:#{smtp_username}", default: nil, required: node_part['email']['transport'] == 'smtp')
 
   notification_post_twitter post_twitter
   twitter_api_consumer_key secret.get('twitter:consumer_key', default: nil, required: post_twitter)
