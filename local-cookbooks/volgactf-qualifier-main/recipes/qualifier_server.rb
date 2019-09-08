@@ -54,10 +54,11 @@ if fail2ban_enabled
     mode 0644
     variables(
       chain: 'fail2ban',
-      action: 'action_mwl',
+      action: 'action_',
       destemail: node['fail2ban']['destemail'],
       sender: node['fail2ban']['sender'],
-      sendername: node['fail2ban']['sendername']
+      sendername: node['fail2ban']['sendername'],
+      jail: node['fail2ban']['jail']
     )
     action :create
     notifies :restart, 'service[fail2ban]', :delayed
