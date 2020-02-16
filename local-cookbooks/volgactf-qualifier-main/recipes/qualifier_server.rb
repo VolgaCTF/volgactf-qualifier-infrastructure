@@ -18,6 +18,12 @@ end
 
 package 'net-tools'
 
+package 'cron'
+
+service 'cron' do
+  action [:enable, :start]
+end
+
 include_recipe 'ntp::default'
 
 fail2ban_enabled = node.fetch('fail2ban', {}).fetch('enabled', false)
@@ -95,8 +101,8 @@ node_part = node['volgactf']['qualifier']
 opt_proxy_source = node_part.fetch('proxy_source', nil)
 
 ngx_http_ssl_module 'default' do
-  openssl_version '1.1.1b'
-  openssl_checksum '5c557b023230413dfb0756f3137a13e6d726838ccd1430888ad15bfb2b43ea4b'
+  openssl_version node['openssl']['version']
+  openssl_checksum node['openssl']['checksum']
   action :add
 end
 
@@ -112,6 +118,8 @@ dhparam_file 'default' do
 end
 
 nginx_install 'default' do
+  version node['nginx']['version']
+  checksum node['nginx']['checksum']
   with_ipv6 false
   with_threads false
   with_debug false
@@ -204,13 +212,17 @@ logrotate_app 'nginx' do
   action :enable
 end
 
-geolite2_country_database 'default'
-geolite2_city_database 'default'
+geolite2_country_database 'default' do
+  license_key secret.get('maxmind:license_key')
+end
+
+geolite2_city_database 'default' do
+  license_key secret.get('maxmind:license_key')
+end
 
 redis_host = '127.0.0.1'
 redis_port = 6379
 
-node.default['redisio']['version'] = '5.0.3'
 node.default['redisio']['servers'] = [
   {
     name: nil,
@@ -224,7 +236,7 @@ include_recipe 'redisio::enable'
 
 include_recipe 'nodejs::nodejs_from_binary'
 
-postgres_version = '9.6'
+postgres_version = node['postgresql']['version']
 postgres_superuser_pwd = secret.get('postgres:password:postgres')
 
 postgresql_server_install 'PostgreSQL Server' do
@@ -251,7 +263,7 @@ end
 
 db_user = 'volgactf_qualifier'
 db_name = 'volgactf_qualifier'
-db_locale = 'en_US.utf8'
+db_locale = 'en_US.UTF-8'
 
 postgresql_user db_user do
   password secret.get("postgres:password:#{db_user}")
@@ -279,7 +291,9 @@ include_recipe 'graphicsmagick::devel'
 
 include_recipe 'agit::cleanup'
 
-if node.chef_environment == 'development'
+opt_proxied = node_part.fetch('proxied', false)
+
+if node.chef_environment == 'development' && opt_proxied
   vpn_connect 'default' do
     config secret.get('openvpn:config')
     action :create
@@ -296,7 +310,6 @@ end
 end
 
 opt_secure = node_part.fetch('secure', false)
-opt_proxied = node_part.fetch('proxied', false)
 opt_oscp_stapling = node_part.fetch('oscp_stapling', true)
 opt_optimize_delivery = node_part.fetch('optimize_delivery', false)
 
@@ -308,7 +321,7 @@ smtp_username = node_part.fetch('smtp', {}).fetch('username', nil)
 volgactf_qualifier_app node_part['fqdn'] do
   development node.chef_environment == 'development'
   optimize_delivery opt_optimize_delivery
-  session_secret secret.get('themis-quals:session_secret')
+  session_secret secret.get('volgactf-qualifier:session_secret')
   secure opt_secure
   proxied opt_proxied
   oscp_stapling opt_oscp_stapling
@@ -401,6 +414,7 @@ firewall_rule 'http' do
   end
   protocol :tcp
   command :allow
+  notifies :restart, 'service[fail2ban]', :delayed
 end
 
 if opt_secure && !opt_proxied
@@ -413,5 +427,6 @@ if opt_secure && !opt_proxied
     end
     protocol :tcp
     command :allow
+    notifies :restart, 'service[fail2ban]', :delayed
   end
 end

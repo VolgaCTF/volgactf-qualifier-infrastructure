@@ -1,8 +1,7 @@
 vms:
   master:
     box: aspyatkin/ubuntu-18.04-server
-    box_version: ~> 1.2.0
-    ssh_insert_key: no
+    box_version: ~> 1.4.0
     name: master.qualifier.volgactf.test
     memory: 2048
     cpus: 2
@@ -16,3 +15,5 @@ vms:
         guest: /vagrant
         opts:
           disabled: yes
+    other:
+      ssh.insert_key: no
