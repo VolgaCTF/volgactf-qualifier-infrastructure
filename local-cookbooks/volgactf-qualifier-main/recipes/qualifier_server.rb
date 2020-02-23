@@ -378,11 +378,16 @@ volgactf_qualifier_app node_part['fqdn'] do
   mailgun_api_key secret.get('mailgun:api_key', required: node_part['email']['transport'] == 'mailgun' || node_part['email']['address_validator'] == 'mailgun')
   mailgun_domain node_part.fetch('mailgun', {}).fetch('domain', nil)
 
+  zerobounce_api_key secret.get('zerobounce:api_key', required: node_part['email']['address_validator'] == 'zerobounce')
+  mailboxlayer_api_key secret.get('mailboxlayer:api_key', required: node_part['email']['address_validator'] == 'mailboxlayer')
+  thechecker_api_key secret.get('thechecker:api_key', required: node_part['email']['address_validator'] == 'thechecker')
+
   smtp_host node_part.fetch('smtp', {}).fetch('host', nil)
   smtp_port node_part.fetch('smtp', {}).fetch('port', nil)
   smtp_secure node_part.fetch('smtp', {}).fetch('secure', false)
   smtp_username smtp_username
   smtp_password secret.get("smtp:password:#{smtp_username}", default: nil, required: node_part['email']['transport'] == 'smtp')
+  smtp_headers node_part.fetch('smtp', {}).fetch('headers', {})
 
   notification_post_twitter post_twitter
   twitter_api_consumer_key secret.get('twitter:consumer_key', default: nil, required: post_twitter)

@@ -3,7 +3,7 @@ maintainer 'Alexander Pyatkin'
 maintainer_email 'aspyatkin@gmail.com'
 license 'MIT'
 description 'VolgaCTF Qualifier Main'
-version '2.0.0'
+version '2.0.1'
 
 depends 'ntp', '~> 3.7.0'
 depends 'firewall', '~> 2.7.0'
@@ -24,7 +24,7 @@ depends 'secret', '~> 1.0.0'
 depends 'cronic', '~> 2.0.1'
 
 depends 'vpn', '~> 0.3.0'
-depends 'volgactf-qualifier', '~> 2.0.0'
+depends 'volgactf-qualifier', '~> 2.0.1'
 
 depends 'git', '~> 10.0.0'
 depends 'agit', '~> 0.1.2'
