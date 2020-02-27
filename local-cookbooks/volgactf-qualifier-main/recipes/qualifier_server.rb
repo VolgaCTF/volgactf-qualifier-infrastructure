@@ -118,8 +118,8 @@ dhparam_file 'default' do
 end
 
 nginx_install 'default' do
-  version node['nginx']['version']
-  checksum node['nginx']['checksum']
+  version node['ngx']['version']
+  checksum node['ngx']['checksum']
   with_ipv6 false
   with_threads false
   with_debug false
@@ -375,7 +375,7 @@ volgactf_qualifier_app node_part['fqdn'] do
 
   google_tag_id secret.get('google:tag_id', default: nil, required: false)
 
-  mailgun_api_key secret.get('mailgun:api_key', required: node_part['email']['transport'] == 'mailgun' || node_part['email']['address_validator'] == 'mailgun')
+  mailgun_api_key secret.get('mailgun:api_key', required: [node_part['email']['transport'], node_part['email']['address_validator']].include?('mailgun'))
   mailgun_domain node_part.fetch('mailgun', {}).fetch('domain', nil)
 
   zerobounce_api_key secret.get('zerobounce:api_key', required: node_part['email']['address_validator'] == 'zerobounce')
