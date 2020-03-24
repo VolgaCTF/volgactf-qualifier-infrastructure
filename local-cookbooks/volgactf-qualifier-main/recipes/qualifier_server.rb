@@ -331,6 +331,7 @@ volgactf_qualifier_app node_part['fqdn'] do
 
   email_transport node_part['email']['transport']
   email_address_validator node_part['email']['address_validator']
+  email_address_validator_ignore_list node_part['email'].fetch('address_validator_ignore_list', [])
   email_sender_name node_part['email']['sender_name']
   email_sender_address node_part['email']['sender_address']
 
