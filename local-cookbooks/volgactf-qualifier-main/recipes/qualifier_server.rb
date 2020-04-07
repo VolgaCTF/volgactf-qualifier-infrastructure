@@ -129,7 +129,7 @@ nginx_install 'default' do
       worker_rlimit_nofile: 100_000
     },
     events: {
-      worker_connections: 2048,
+      worker_connections: 4096,
       multi_accept: 'on'
     },
     http: {
